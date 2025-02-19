@@ -1,12 +1,13 @@
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Pressable, Image, KeyboardAvoidingView, Platform } from 'react-native';
 import { useState } from 'react';
-import { Icon1, Icon2 } from "@/assets/icons/SavedEventsIcons";
+import { Icon1, Icon2, TickIcon } from "@/assets/icons/SavedEventsIcons";
 import { useRouter } from 'expo-router';
 import CountryDropdown from '@/components/CountryDropdown';
-import { Entypo, MaterialIcons } from '@expo/vector-icons';
+import { Entypo, FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 import { EarlyBirdIcon, MoonIcon, PlusIcon, RegularIcon, VipIcon } from '@/assets/icons/TicketIcons';
 import CountrySelector from '@/components/CountrySelector';
+import { BlurView } from 'expo-blur';
 
 const countries = [
     {
@@ -83,14 +84,14 @@ export default function Checkout() {
 
             {/* Content */}
             <ScrollView
-                className="flex-1 px-5"
+                className="flex-1 px-5 pb-32"
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
             >
                 {/* Order Summary for Step 2 */}
                 {step === 2 && (
                     <>
-                        <View className="bg-black/40 rounded-3xl mb-4">
+                        <View className="bg-black/40 rounded-3xl mb-4 ">
                             <Pressable
                                 className="flex-row justify-between items-center p-4 border mb-2 rounded-3xl border-white/10"
                                 onPress={() => setIsOrderSummaryOpen(!isOrderSummaryOpen)}
@@ -326,69 +327,60 @@ export default function Checkout() {
                     )}
 
                     {step === 2 && (
-                        <View className="flex-1 p-5">
+                        <>
+                            <View className="flex-1 p-5">
 
 
-                            {/* Card Details */}
-                            <View className="mb-6">
-                                <Text className="text-white text-base mb-2">Card number</Text>
-                                <TextInput
-                                    className="bg-white/10 rounded-3xl h-14 px-4 text-white text-base"
-                                    placeholder="4000 0000 0000 0000"
-                                    placeholderTextColor="rgba(255,255,255,0.5)"
-                                    keyboardType="numeric"
-                                    value={formData.cardNumber}
-                                    onChangeText={(text) => handleInputChange('cardNumber', text)}
-                                />
-                            </View>
-
-                            <View className="flex-row mb-6">
-                                <View className="flex-1 mr-3">
-                                    <Text className="text-white text-base mb-2">Expiration date</Text>
+                                {/* Card Details */}
+                                <View className="mb-6">
+                                    <Text className="text-white text-base mb-2">Card number</Text>
                                     <TextInput
                                         className="bg-white/10 rounded-3xl h-14 px-4 text-white text-base"
-                                        placeholder="MM/YY"
-                                        placeholderTextColor="rgba(255,255,255,0.5)"
-                                        value={formData.expirationDate}
-                                        onChangeText={(text) => handleInputChange('expirationDate', text)}
-                                    />
-                                </View>
-                                <View className="flex-1">
-                                    <Text className="text-white text-base mb-2">CVV</Text>
-                                    <TextInput
-                                        className="bg-white/10 rounded-3xl h-14 px-4 text-white text-base"
-                                        placeholder="000"
+                                        placeholder="4000 0000 0000 0000"
                                         placeholderTextColor="rgba(255,255,255,0.5)"
                                         keyboardType="numeric"
-                                        value={formData.cvv}
-                                        onChangeText={(text) => handleInputChange('cvv', text)}
+                                        value={formData.cardNumber}
+                                        onChangeText={(text) => handleInputChange('cardNumber', text)}
+                                    />
+                                </View>
+
+                                <View className="flex-row mb-6">
+                                    <View className="flex-1 mr-3">
+                                        <Text className="text-white text-base mb-2">Expiration date</Text>
+                                        <TextInput
+                                            className="bg-white/10 rounded-3xl h-14 px-4 text-white text-base"
+                                            placeholder="MM/YY"
+                                            placeholderTextColor="rgba(255,255,255,0.5)"
+                                            value={formData.expirationDate}
+                                            onChangeText={(text) => handleInputChange('expirationDate', text)}
+                                        />
+                                    </View>
+                                    <View className="flex-1">
+                                        <Text className="text-white text-base mb-2">CVV</Text>
+                                        <TextInput
+                                            className="bg-white/10 rounded-3xl h-14 px-4 text-white text-base"
+                                            placeholder="000"
+                                            placeholderTextColor="rgba(255,255,255,0.5)"
+                                            keyboardType="numeric"
+                                            value={formData.cvv}
+                                            onChangeText={(text) => handleInputChange('cvv', text)}
+                                        />
+                                    </View>
+                                </View>
+
+                                <View className="mb-6">
+                                    <Text className="text-white text-base mb-2">Country</Text>
+                                    <CountrySelector
+                                        selectedCountry={selectedCountry}
+                                        onSelect={setSelectedCountry}
+                                        countries={countries}
                                     />
                                 </View>
                             </View>
-
-                            <View className="mb-6">
-                                <Text className="text-white text-base mb-2">Country</Text>
-                                <CountrySelector
-                                    selectedCountry={selectedCountry}
-                                    onSelect={setSelectedCountry}
-                                    countries={countries}
-                                />
-                            </View>
-
-                            <TouchableOpacity
-                                className="bg-white rounded-3xl p-4 items-center mt-auto"
-                                onPress={() => setStep(3)}
-                            >
-                                <Text className="text-black text-base font-semibold">
-                                    Pay $97.00 now
-                                </Text>
-                            </TouchableOpacity>
-
-                            <Text className="text-white/50 text-center mt-3">
-                                Your data is encrypted
-                            </Text>
-                        </View>
+                        </>
                     )}
+
+
 
                     {step === 3 && (
                         <View className="flex-1 items-center justify-center p-5 mt-5 py-32">
@@ -423,7 +415,34 @@ export default function Checkout() {
                         </View>
                     )}
                 </View>
+                {step === 2 && (
+                    <View className="pb-40"></View>
+                )}
             </ScrollView>
+
+            {/* Bottom Bar */}
+            {step === 2 && (
+                <BlurView
+                    intensity={50}
+                    tint="dark"
+                    className="absolute bottom-0 left-0 right-0 border-t border-white/10 bg-black/50"
+                >
+                    <View className="px-5 pb-8 pt-5">
+                        <TouchableOpacity
+                            className="bg-white w-full rounded-3xl p-4 items-center"
+                            onPress={() => setStep(3)}
+                        >
+                            <Text className="text-black text-base font-semibold">
+                                Pay ${totalAmount}.00 now
+                            </Text>
+                        </TouchableOpacity>
+
+                        <Text className="text-white/50 text-center mt-3">
+                            Your data is encrypted
+                        </Text>
+                    </View>
+                </BlurView>
+            )}
         </KeyboardAvoidingView>
     );
 } 
