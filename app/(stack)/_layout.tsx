@@ -51,6 +51,18 @@ export default function StackLayout() {
                     headerShown: false,
                 }}
             />
+            <Stack.Screen
+                name="qr-scan"
+                options={{
+                    headerShown: false,
+                }}
+            />
+            <Stack.Screen
+                name="orders"
+                options={{
+                    headerShown: false,
+                }}
+            />
         </Stack>
     );
 } 

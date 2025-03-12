@@ -6,7 +6,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useBottomSheet } from '@/context/BottomSheetContext';
 
-export function BottomTabs({
+export function OrgBottomTab({
   state,
   descriptors,
   navigation,

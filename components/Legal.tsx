@@ -76,7 +76,7 @@ const LegalSection = () => {
                 style={{ color: "#F43F5E" }}
                 className="text-md font-medium ml-2 "
               >
-                Logout of Account
+                Logout
               </Text>
             </Pressable>
           </View>

@@ -1,334 +1,167 @@
-import { Image, Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
-import {
-  FontAwesome5,
-  Ionicons,
-  Entypo,
-  MaterialIcons,
-  FontAwesome,
-} from "@expo/vector-icons";
-import { useState, useRef } from "react";
-import { BookMarkIcon, CrossIcon, Icon1, PlaceIcon, PriceIcon } from "@/assets/icons/HomeIcons";
+import { View, Text, Pressable, TextInput, Keyboard, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
-import PlaceBottomSheet, { PlaceBottomSheetRef } from '@/components/PlaceBottomSheet';
-import { CalendarIcon, RegularIcon, VipIcon, EarlyBirdIcon, OfferIcon, MoonIcon } from "@/assets/icons/TicketIcons";
-import { BrushIcon, MusicIcon } from "@/assets/icons/SavedEventsIcons";
-import { LinearGradient } from "expo-linear-gradient";
-import DateBottomSheet, { DateBottomSheetRef } from '@/components/DateBottomSheet';
-import PriceBottomSheet, { PriceBottomSheetRef } from '@/components/PriceBottomSheet';
-import React from "react";
-import { useFilter } from '@/context/FilterContext';
-import image1 from "@/assets/images/ticket/ticket1.png"
+import { Ionicons } from '@expo/vector-icons';
+import { StatusBar } from 'expo-status-bar';
+import { Icon1 } from '@/assets/icons/SavedEventsIcons';
+import CountryDropdown from '@/components/CountryDropdown';
+import { useState } from 'react';
+import { Entypo } from '@expo/vector-icons';
+import Banner from '@/components/Banner';
+import axios from 'axios';
 
-const getTicketIcon = (category: string) => {
-  switch (category.toLowerCase()) {
-    case 'arts & culture':
-      return <BrushIcon color="#9bda33" size={13} />;
-    case 'music':
-      return <MusicIcon color="#cd364f" size={16} />;
-    case 'sport':
-      return <RegularIcon color="#34B2DA" size={16} />;
-    case 'tech':
-      return <OfferIcon color="#A855F7" size={16} />;
-    case "nightlife":
-      return <MoonIcon color="#A855F7" size={16} />;
-    default:
-      return <RegularIcon color="#a855f7" size={16} />;
+interface Country {
+  code: string;
+  name: string;
+  flag: string;
+  dialCode: string;
+}
+
+const countries: Country[] = [
+  {
+    code: "US",
+    name: "United States",
+    flag: "https://cdn.britannica.com/33/4833-050-F6E415FE/Flag-United-States-of-America.jpg",
+    dialCode: "+1"
+  },
+  {
+    code: "IN",
+    name: "India",
+    flag: "https://upload.wikimedia.org/wikipedia/en/thumb/4/41/Flag_of_India.svg/1200px-Flag_of_India.svg.png",
+    dialCode: "+91"
+  },
+  {
+    code: "GB",
+    name: "United Kingdom",
+    flag: "https://upload.wikimedia.org/wikipedia/en/thumb/a/ae/Flag_of_the_United_Kingdom.svg/1200px-Flag_of_the_United_Kingdom.svg.png",
+    dialCode: "+44"
+  },
+  {
+    code: "CA",
+    name: "Canada",
+    flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Flag_of_Canada_%28Pantone%29.svg/1200px-Flag_of_Canada_%28Pantone%29.svg.png",
+    dialCode: "+1"
   }
-};
-
-const events = [
-  {
-    id: 1,
-    category: "Arts & Culture",
-    date: "28 DEC 22:00",
-    image: image1,
-    title: "Abstract Horizons",
-    location: "Modern Arts Center",
-    price: "$39+",
-  },
-  {
-    id: 2,
-    category: "Nightlife",
-    date: "30 DEC 20:00",
-    image: require("@/assets/images/ticket/ticket4.png"),
-    title: "Rock Night",
-    location: "Open Arena",
-    price: "$50+",
-  },
-  {
-    id: 3,
-    category: "Music",
-    date: "5 JAN 18:00",
-    image: require("@/assets/images/ticket/ticket2.png"),
-    title: "Championship Finals",
-    location: "City Stadium",
-    price: "$20+",
-  },
-  {
-    id: 4,
-    category: "Nightlife",
-    date: "15 JAN 10:00",
-    image: require("@/assets/images/ticket/ticket3.png"),
-    title: "Tech Conference 2025",
-    location: "Tech Park",
-    price: "Free",
-  },
 ];
 
 export default function Index() {
   const router = useRouter();
-  const [bookmarkedEvents, setBookmarkedEvents] = useState<number[]>([]);
-  const placeBottomSheetRef = useRef<PlaceBottomSheetRef>(null);
-  const dateBottomSheetRef = useRef<DateBottomSheetRef>(null);
-  const priceBottomSheetRef = useRef<PriceBottomSheetRef>(null);
-  const { placeFilter, priceFilter, dateFilter, totalResults, clearAllFilters } = useFilter();
+  const [selectedCountry, setSelectedCountry] = useState<Country>(countries[0]);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [showError, setShowError] = useState(false);
+  const [isSending, setIsSending] = useState(false); // State for button loading
+  const [buttonText, setButtonText] = useState("Verify number");
 
-  const hasActiveFilters = placeFilter || priceFilter || dateFilter;
-
-  const categories = [
-    { id: 'all', label: 'All', icon: null, color: null },
-    { id: 'music', label: 'Music', icon: 'music', color: 'red', IconComponent: FontAwesome5 },
-    { id: 'nightlife', label: 'Nightlife', icon: 'moon', color: 'purple', IconComponent: Ionicons },
-    { id: 'sport', label: 'Sport', icon: 'fire', color: 'orange', IconComponent: FontAwesome5 },
-    { id: 'theater', label: 'Theater', icon: 'theater-masks', color: 'pink', IconComponent: FontAwesome5 },
-    { id: 'art', label: 'Art', icon: 'paint-brush', color: 'cyan', IconComponent: FontAwesome5 },
-    { id: 'food', label: 'Food', icon: 'utensils', color: 'yellow', IconComponent: FontAwesome5 },
-    { id: 'education', label: 'Education', icon: 'graduation-cap', color: 'green', IconComponent: FontAwesome5 },
-  ];
-
-  const toggleBookmark = (eventId: number) => {
-    setBookmarkedEvents(
-      (prev) =>
-        prev.includes(eventId)
-          ? prev.filter((id) => id !== eventId) // Remove bookmark
-          : [...prev, eventId] // Add bookmark
-    );
+  const handlePhoneNumberChange = (text: string) => {
+    const cleanedText = text.replace(/\D/g, '');
+    setPhoneNumber(cleanedText);
+    setShowError(cleanedText.length > 12);
   };
 
+  const handleVerify = async () => {
+    const numberWithCode = selectedCountry.dialCode + phoneNumber;
+
+    try {
+      setIsSending(true);
+      setButtonText("Sending OTP...");
+
+      const response = await axios.post(
+        `https://avenue.tickets/api/auth/send-otp`,
+        { phone: numberWithCode }
+      );
+      if (response.data?.data?.status === "sent") {
+        setButtonText("Verify number");
+        router.push({
+          pathname: "/verify-number",
+          params: { phone: phoneNumber },
+        });
+      } else {
+        console.error("API returned failure:", response.data);
+        setButtonText("Verify number");
+      }
+    } catch (error) {
+      console.error("Error:", error.message);
+      setButtonText("Verify number");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const isVerifyDisabled = phoneNumber.length === 0 || showError;
+
   return (
-    <View style={{ flex: 1, backgroundColor: '#000' }}>
-      <ScrollView className="px-4 py-8">
-        {hasActiveFilters ? (
-          <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-white font-medium text-4xl">{totalResults} results{'\n'}based on filters</Text>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      className="flex-1 bg-black"
+    >
+      <Pressable className="flex-1" onPress={() => Keyboard.dismiss()}>
+        <StatusBar style="light" />
 
+        {/* Content */}
+        <View className="px-5 flex-1">
+          {/* Logo */}
+          <View className="mt-20 mb-4 items-center">
+            <Icon1 color="#34B2DA" size={40} />
           </View>
-        ) : (
-          <Text className="text-white font-medium text-4xl">Explore Events</Text>
-        )}
 
-        {/* Section 1 */}
-        <View className="relative w-full">
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            className="w-full mt-6"
-            contentContainerStyle={{ gap: 10, paddingRight: 100 }}
-          >
-            {categories.map((category) => (
-              <Pressable
-                key={category.id}
-                className={`${category.id === 'all' ? 'bg-white' : 'bg-black border border-white/10'
-                  } rounded-full px-6 py-3 flex items-center justify-center`}
-              >
-                {category.icon ? (
-                  <View className="flex-row items-center">
-                    <category.IconComponent name={category.icon} size={16} color={category.color} />
-                    <Text className={`${category.id === 'all' ? 'text-black' : 'text-white'
-                      } font-medium ml-3`}>{category.label}</Text>
-                  </View>
-                ) : (
-                  <Text className="text-black font-medium">{category.label}</Text>
-                )}
-              </Pressable>
-            ))}
-          </ScrollView>
-          <LinearGradient
-            colors={["transparent", "#00000082"]}
-            start={{ x: 0.7, y: 0 }}
-            end={{ x: 0.9, y: 0 }}
-            style={{
-              position: 'absolute',
-              right: 0,
-              top: 0,
-              bottom: 0,
-              width: 200,
-              height: '100%',
-              zIndex: 1,
-              pointerEvents: 'none',
-            }}
-          />
-        </View>
+          {/* Heading */}
+          <Text className="text-white text-center text-[28px] font-medium">Enter phone number</Text>
+          <Text className="text-gray-400 text-center text-base mt-2 mb-8">Let's check if you have an account</Text>
 
-        {/* Section 2 */}
-        <View className="border  border-white/10 rounded-3xl mt-6 p-2">
-          <View className="flex-row justify-between gap-2">
-            <Pressable
-              className="flex-1 bg-[#141414] h-20 rounded-2xl items-center justify-center relative"
-              onPress={() => placeBottomSheetRef.current?.open()}
-            >
-              <View className="flex-col items-center">
-                <PlaceIcon color="white" size={20} />
-                <View className="flex-row items-center gap-1 mt-1">
-                  <Text className="text-white font-medium text-lg">Place</Text>
-                  {placeFilter && (
-                    <View className=" bg-[#172428] w-5 h-5 rounded-md items-center justify-center">
-                      <Text className="text-[#34b2da] text-xs font-bold">2</Text>
-                    </View>
-                  )}
-                </View>
+          {/* Phone Input */}
+          <View>
+            <View className="flex-row space-x-3 border border-white/10 rounded-full p-1" style={{ zIndex: 999999 }}>
+              <View className="border-r border-white/10 min-w-[100px]" style={{ zIndex: 999999 }}>
+                <CountryDropdown
+                  selectedCountry={selectedCountry}
+                  onSelect={setSelectedCountry}
+                  countries={countries}
+                />
               </View>
-            </Pressable>
-            <Pressable
-              className="flex-1 bg-[#141414] h-20 rounded-2xl items-center justify-center relative"
-              onPress={() => priceBottomSheetRef.current?.open()}
-            >
-              <View className="flex-col items-center">
-                <PriceIcon color="white" size={20} />
-                {
-                  <View className="flex-row items-center gap-1 mt-1">
-                    <Text className="text-white font-medium text-lg">Price</Text>
-                    {priceFilter && (
-                      <View className=" bg-[#172428] w-5 h-5 rounded-md items-center justify-center">
-                        <Text className="text-[#34b2da] text-xs font-bold">2</Text>
-                      </View>
-                    )}
-                  </View>
-                }
+              <View className="flex-1 rounded-full flex-row items-center">
+                <TextInput
+                  className="flex-1 h-12 text-white px-4"
+                  value={phoneNumber}
+                  onChangeText={handlePhoneNumberChange}
+                  placeholder="(555) 987 6543"
+                  placeholderTextColor="rgba(255,255,255,0.5)"
+                  keyboardType="phone-pad"
+                  maxLength={15}
+                />
               </View>
-            </Pressable>
-            <Pressable
-              className="flex-1 bg-[#141414] h-20 rounded-2xl items-center justify-center relative"
-              onPress={() => dateBottomSheetRef.current?.open()}
-            >
-              <View className="flex-col items-center">
-                <CalendarIcon color="gray" size={18} />
-                <View className="flex-row items-center gap-1 mt-1">
-                  <Text className="text-white font-medium text-lg">Date</Text>
-                  {dateFilter && dateFilter.length > 0 && (
-                    <View className=" bg-[#172428] w-5 h-5 rounded-md items-center justify-center">
-                      <Text className="text-[#34b2da] text-xs font-bold">{dateFilter.length}</Text>
-                    </View>
-                  )}
-                </View>
+            </View>
+
+            {/* Error Banner */}
+            {showError && (
+              <View className="mt-20 w-full flex-row justify-center">
+                <Banner
+                  type="red"
+                  text="NUMBER DOESN'T EXIST"
+                  isExpired={true}
+                />
               </View>
-            </Pressable>
+            )}
           </View>
         </View>
 
-
-        {/* clear all filters */}
-        {
-          hasActiveFilters && (<Pressable
-            className="p-4 border border-white/10 rounded-full mt-4 flex-row items-center gap-2 justify-center"
-            onPress={clearAllFilters}
+        {/* Bottom Buttons */}
+        <View className="px-5 pb-8 flex-row items-center gap-4">
+          <Pressable
+            onPress={() => router.back()}
+            className="w-14 h-14 border border-white/10 rounded-full items-center justify-center"
           >
-            <CrossIcon color="white" size={16} />
-            <Text className="text-white text-lg font-medium text-center">Clear all filters</Text>
-          </Pressable>)
-        }
-
-        {/* Card Section */}
-        <View className="mt-8">
-          {events.map((event) => (
-            <Pressable
-              key={event.id}
-              className="bg-card rounded-2xl overflow-hidden p-4 mb-6"
-              onPress={() => {
-                router.push({
-                  pathname: "/(stack)/event-details",
-                  params: {
-                    id: event.id,
-                    title: event.title,
-                    category: event.category,
-                    location: event.location,
-                    date: event.date,
-                    price: event.price,
-                    image: event.image
-                  }
-                });
-              }}
-            >
-              <View className="flex-row justify-between">
-                <View className="flex-row items-center gap-2 flex-1 mr-4">
-                  {getTicketIcon(event.category)}
-                  <Text className="text-white/50 font-medium uppercase flex-shrink-0" numberOfLines={1}>
-                    {event.category}
-                  </Text>
-                </View>
-                <Text className="text-white font-medium flex-shrink-0">{event.date}</Text>
-              </View>
-
-              <View className="flex-row justify-between items-center w-full mt-4">
-                {Array(20)
-                  .fill(0)
-                  .map((_, index) => (
-                    <View
-                      key={index}
-                      className="w-2 h-1 bg-black rounded-full mx-[2px]"
-                    />
-                  ))}
-              </View>
-
-              <View className="mt-4 flex-row justify-between items-center">
-                <TouchableOpacity className="h-20 w-20 rounded-xl overflow-hidden">
-                  <Image
-                    source={event.image}
-                    className="h-full w-full"
-                    resizeMode="cover"
-                  />
-                </TouchableOpacity>
-                <Pressable
-                  className="w-14 flex items-center justify-center h-14 border border-white/10 rounded-full p-2"
-                  onPress={() => toggleBookmark(event.id)}
-                >
-                  {bookmarkedEvents.includes(event.id) ? (
-                    <Icon1 color="#6EE7B7" size={15} />
-                  ) : (
-                    <BookMarkIcon color="white" size={20} />
-                  )}
-                </Pressable>
-              </View>
-
-              <View className="mt-4 flex-row justify-between items-center">
-                <View>
-                  <Text className="text-white font-medium text-xl">
-                    {event.title}
-                  </Text>
-                  <View className="flex-row items-center mt-2">
-                    <PlaceIcon color="white" size={16} />
-                    <Text className="text-gray-400 font-medium text-md ml-1">
-                      {event.location}
-                    </Text>
-                  </View>
-                </View>
-                <View className="flex-row items-end">
-                  {
-                    event.price.includes('$') ? (
-                      <>
-                        <Text className="text-white/50 font-medium text-3xl">
-                          $
-                        </Text>
-                        <Text className="text-white font-medium text-3xl">
-                          {event.price.replace('$', '')}
-                        </Text>
-                      </>
-                    ) : (
-                      <Text className="text-white font-medium text-3xl">
-                        {event.price}
-                      </Text>
-                    )
-                  }
-                </View>
-              </View>
-            </Pressable>
-          ))}
+            <Entypo name="cross" size={24} color="white" />
+          </Pressable>
+          <Pressable
+            className={`flex-1 py-4 rounded-full ${isSending || isVerifyDisabled ? 'bg-white/50' : 'bg-white'}`}
+            onPress={handleVerify}
+            disabled={isSending || isVerifyDisabled}
+          >
+            <Text className="text-black text-base font-medium text-center">
+              {buttonText}
+            </Text>
+          </Pressable>
         </View>
-        <View className="h-32"></View>
-      </ScrollView >
-      <PlaceBottomSheet ref={placeBottomSheetRef} />
-      <DateBottomSheet ref={dateBottomSheetRef} />
-      <PriceBottomSheet ref={priceBottomSheetRef} />
-    </View >
+      </Pressable>
+    </KeyboardAvoidingView>
   );
 }

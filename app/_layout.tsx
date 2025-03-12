@@ -4,6 +4,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetProvider } from '@/context/BottomSheetContext';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { FilterProvider } from '@/context/FilterContext';
+import { StatusBar } from "expo-status-bar";
 
 export default function RootLayout() {
   return (
@@ -11,7 +12,7 @@ export default function RootLayout() {
       <BottomSheetModalProvider>
         <BottomSheetProvider>
           <FilterProvider>
-            <Stack screenOptions={{ headerShown: false }}>
+            <Stack initialRouteName="(stack)" screenOptions={{ headerShown: false }}>
               <Stack.Screen name="(tabs)" />
               <Stack.Screen name="(stack)" />
             </Stack>

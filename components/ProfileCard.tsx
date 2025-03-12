@@ -60,7 +60,7 @@ const ProfileCard = ({
 
       <View className="h-16  flex-row items-center p-1 rounded-full mt-6 mb-1 bg-white/10">
         <Pressable
-          onPress={() => setToggleTabs("attendee")}
+          onPress={() => router.push("/(stack)/sign-in")}
           className={`${toggleTabs === "attendee"
             ? "bg-white/10"
             : "bg-transparent"} h-full w-1/2 rounded-full justify-center items-center flex-row`}
@@ -83,7 +83,7 @@ const ProfileCard = ({
         </Pressable>
 
         <Pressable
-          onPress={() => setToggleTabs("creator")}
+          onPress={() => router.push("/(stack)/qr-scan")}
           className={`${toggleTabs === "creator"
             ? "bg-white/10"
             : "bg-transparent"} h-full w-1/2 rounded-full justify-center items-center`}

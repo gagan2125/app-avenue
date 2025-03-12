@@ -5,7 +5,7 @@ import ProfileCard from "@/components/ProfileCard";
 import ProfileDetailCard from "@/components/ProfileDetailCard";
 import { FontAwesome } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { ScrollView, Switch, Text, View } from "react-native";
+import { ScrollView, Switch, Text, TouchableOpacity, View } from "react-native";
 
 const Profile = () => {
   const [isPrivacyEnabled, setIsPrivacyEnabled] = useState(false);
@@ -18,10 +18,10 @@ const Profile = () => {
           <Icon1 color="#34B2DA" size={25} />
           <Text className="text-2xl font-medium text-white ml-2">Avenue</Text>
         </View>
-        <View className="flex-row items-center">
+        <TouchableOpacity className="flex-row items-center">
           <Icon2 color="#F97316" size={25} />
           <Text className="text-2xl font-medium text-white ml-2">Attendee</Text>
-        </View>
+        </TouchableOpacity>
       </View>
 
       {/* Profile Card */}
