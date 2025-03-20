@@ -154,7 +154,7 @@ const PlaceBottomSheet = forwardRef<PlaceBottomSheetRef>(({ events, onSelectEven
 
     const fetchRemainEvent = async (id) => {
         try {
-            const response = await axios.get(`http://localhost:3000/api/remain-tickets/${id}`);
+            const response = await axios.get(`https://avenue.tickets/api/remain-tickets/${id}`);
 
             if (response.data) {
                 const sold = response.data.reduce((acc, event) => acc + Number(event.tickets_sold), 0);
