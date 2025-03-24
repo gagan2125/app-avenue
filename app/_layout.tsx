@@ -12,7 +12,7 @@ export default function RootLayout() {
       <BottomSheetModalProvider>
         <BottomSheetProvider>
           <FilterProvider>
-            <Stack initialRouteName="(stack)" screenOptions={{ headerShown: false }}>
+            <Stack initialRouteName="(tabs)" screenOptions={{ headerShown: false }}>
               <Stack.Screen name="(tabs)" />
               <Stack.Screen name="(stack)" />
             </Stack>

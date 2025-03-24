@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { Entypo } from '@expo/vector-icons';
 import Banner from '@/components/Banner';
 import axios from 'axios';
+import { url } from '@/constants/url';
 
 interface Country {
   code: string;
@@ -65,7 +66,7 @@ export default function Index() {
       setButtonText("Sending OTP...");
 
       const response = await axios.post(
-        `https://avenue.tickets/api/auth/send-otp`,
+        `${url}/auth/send-otp`,
         { phone: numberWithCode }
       );
       if (response.data?.data?.status === "sent") {
@@ -104,7 +105,7 @@ export default function Index() {
           </View>
 
           {/* Heading */}
-          <Text className="text-white text-center text-[28px] font-medium">Enter phone number</Text>
+          <Text className="text-white text-center text-[28px] font-medium">Enter phone</Text>
           <Text className="text-gray-400 text-center text-base mt-2 mb-8">Let's check if you have an account</Text>
 
           {/* Phone Input */}

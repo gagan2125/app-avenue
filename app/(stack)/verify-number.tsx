@@ -20,6 +20,7 @@ export default function VerifyNumber() {
     const [success, setSuccess] = useState(false);
     const [verificationCountdown, setVerificationCountdown] = useState(3);
     const [resendCountdown, setResendCountdown] = useState(43);
+    const [organizerId, setOrganizerId] = useState<string | null>(null);
 
     useEffect(() => {
         return () => {
@@ -91,21 +92,11 @@ export default function VerifyNumber() {
 
             if (response.data.success) {
                 setSuccess(true);
-                setLoginSuccess(true)
+                setLoginSuccess(true);
                 setError(null);
                 setLoading(false);
+                setOrganizerId(response.data.organizer._id);
                 startVerificationCountdown(3);
-
-                verificationTimerRef.current = setInterval(() => {
-                    setVerificationCountdown((prev) => {
-                        if (prev <= 1) {
-                            clearInterval(verificationTimerRef.current!);
-                            setSuccess(false);
-                            router.replace("/(stack)/qr-scan");
-                        }
-                        return prev - 1;
-                    });
-                }, 1000);
             } else {
                 setError("Invalid OTP");
                 setLoading(false);
@@ -122,6 +113,17 @@ export default function VerifyNumber() {
             inputRefs.current[index - 1]?.focus();
         }
     };
+
+    useEffect(() => {
+        if (success && verificationCountdown === 0 && organizerId) {
+            router.replace({
+                pathname: "/(stack)/qr-scan",
+                params: { organizerId },
+            });
+            setSuccess(false);
+        }
+    }, [success, verificationCountdown, organizerId]);
+
 
     const formatTime = (seconds: number) => {
         return `(${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, '0')})`;

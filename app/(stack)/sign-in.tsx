@@ -76,7 +76,7 @@ const events = [
   },
 ];
 
-export default function Index() {
+export default function SignIn() {
   const router = useRouter();
   const [bookmarkedEvents, setBookmarkedEvents] = useState<number[]>([]);
   const placeBottomSheetRef = useRef<PlaceBottomSheetRef>(null);
@@ -116,7 +116,7 @@ export default function Index() {
 
           </View>
         ) : (
-          <Text className="text-white font-medium text-4xl">Explore Events</Text>
+          <Text className="text-white font-medium text-4xl">Explore Event</Text>
         )}
 
         {/* Section 1 */}

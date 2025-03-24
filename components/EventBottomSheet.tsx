@@ -170,20 +170,38 @@ const PlaceBottomSheet = forwardRef<PlaceBottomSheetRef>(({ events, onSelectEven
         }
     };
 
-    const handleSearch = (query) => {
+    const handleSearch = (query: string) => {
         setSearchQuery(query);
-        if (!query) {
-            setFilteredBook(events);
+        const trimmedQuery = query.trim();
+
+        const now = new Date();
+        const upcomingEvents = events.filter((event) => {
+            const startDate = new Date(event.start_date);
+            return startDate >= now;
+        });
+
+        if (!trimmedQuery) {
+            setFilteredBook(upcomingEvents);
         } else {
-            const lowercasedQuery = query.toLowerCase();
-            const filteredResults = events.filter((event) => {
-                return (
-                    event.event_name?.toLowerCase().includes(lowercasedQuery)
-                );
-            });
+            const lowercasedQuery = trimmedQuery.toLowerCase();
+            const filteredResults = upcomingEvents.filter((event) =>
+                event.event_name?.toLowerCase().includes(lowercasedQuery)
+            );
             setFilteredBook(filteredResults);
         }
     };
+
+    useEffect(() => {
+        const now = new Date();
+
+        const upcomingEvents = events.filter((event) => {
+            const startDate = new Date(event.start_date);
+            return startDate >= now; // include today
+        });
+
+        setFilteredBook(upcomingEvents);
+    }, [events]);
+
 
     return (
         <BottomSheet
@@ -233,7 +251,7 @@ const PlaceBottomSheet = forwardRef<PlaceBottomSheetRef>(({ events, onSelectEven
                         )}
 
                         <View style={styles.listContainer}>
-                            {filteredBook.filter(event => event.explore === 'NO').map((event) => {
+                            {filteredBook.filter(event => event.explore === 'YES').map((event) => {
                                 const totalTickets = (soldTickets[event._id] || 0) + (remainCount[event._id] || 0);
                                 return (
                                     <Pressable
@@ -259,7 +277,7 @@ const PlaceBottomSheet = forwardRef<PlaceBottomSheetRef>(({ events, onSelectEven
                                             </View>
                                             <View style={styles.rightContainer}>
                                                 <Text style={styles.checkedInCount}>{checkedIn[event._id]} checked in</Text>
-                                                <Text style={styles.totalCount}>{soldTickets[event._id]} sold total</Text>
+                                                <Text style={styles.totalCount}>{soldTickets[event._id] || 0} sold total</Text>
                                             </View>
                                         </View>
                                     </Pressable>

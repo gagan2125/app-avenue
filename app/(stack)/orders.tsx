@@ -204,15 +204,17 @@ const Orders = () => {
                                             <View className="flex-row items-center mt-2">
                                                 <PriceIcon color="white" size={16} />
                                                 <Text className="text-gray-400 font-medium text-md ml-1">
-                                                    {event.amount < 0
-                                                        ? `-${(Math.abs((event.amount / 100) - 0.89) / 1.09).toLocaleString("en-US", {
-                                                            minimumFractionDigits: 2,
-                                                            maximumFractionDigits: 2,
-                                                        })}`
-                                                        : `${(Math.abs((event.amount / 100) - 0.89) / 1.09).toLocaleString("en-US", {
-                                                            minimumFractionDigits: 2,
-                                                            maximumFractionDigits: 2,
-                                                        })}`}
+                                                    {!event.transaction_id
+                                                        ? "Comp"
+                                                        : event.amount < 0
+                                                            ? `-${(Math.abs((event.amount / 100 - 0.89) / 1.09)).toLocaleString("en-US", {
+                                                                minimumFractionDigits: 2,
+                                                                maximumFractionDigits: 2,
+                                                            })}`
+                                                            : `${(Math.abs((event.amount / 100 - 0.89) / 1.09)).toLocaleString("en-US", {
+                                                                minimumFractionDigits: 2,
+                                                                maximumFractionDigits: 2,
+                                                            })}`}
                                                 </Text>
                                             </View>
                                         </View>
