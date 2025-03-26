@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "orrin-react-native",
-    "slug": "orrin-react-native",
+    "name": "avenue-bmf",
+    "slug": "avenue-bmf",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -16,14 +16,17 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.orrin.reactnative"
+      "bundleIdentifier": "com.avenue.bmf",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.orrin.reactnative",
+      "package": "com.avenue.bmf",
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION"
@@ -33,7 +36,16 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-router"
-    ]
+      "expo-router",
+      "./plugins/withSvg"
+    ],
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "516a2706-3cfd-4bda-abd1-7457f79674af"
+      }
+    }
   }
 }
