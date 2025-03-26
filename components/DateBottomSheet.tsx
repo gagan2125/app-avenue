@@ -1,12 +1,11 @@
-import React, { useCallback, useMemo, forwardRef, useImperativeHandle, useState } from 'react';
-import { View, Text, StyleSheet, TouchableWithoutFeedback, Platform, Pressable } from 'react-native';
-import BottomSheet, { BottomSheetBackdropProps, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useBottomSheet } from '@/context/BottomSheetContext';
-import { BlurView } from 'expo-blur';
-import Animated, { interpolate, useAnimatedStyle, Extrapolate } from 'react-native-reanimated';
-import Calendar from './Calendar';
-import { DateData } from 'react-native-calendars/src/types';
 import { useFilter } from '@/context/FilterContext';
+import { BottomSheetBackdropProps, BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import React, { forwardRef, useCallback, useImperativeHandle, useMemo, useState } from 'react';
+import { Platform, Pressable, StyleSheet, Text, TouchableWithoutFeedback, View } from 'react-native';
+import { DateData } from 'react-native-calendars/src/types';
+import Animated, { Extrapolate, interpolate, useAnimatedStyle } from 'react-native-reanimated';
+import Calendar from './Calendar';
 
 export type DateBottomSheetRef = {
     open: () => void;
@@ -16,10 +15,6 @@ export type DateBottomSheetRef = {
 type DateBottomSheetProps = {};
 
 const CustomBackdrop = ({ animatedIndex, style }: BottomSheetBackdropProps) => {
-    if (Platform.OS === 'android') {
-        return null;
-    }
-
     const containerAnimatedStyle = useAnimatedStyle(() => ({
         opacity: interpolate(
             animatedIndex.value,
@@ -41,23 +36,16 @@ const CustomBackdrop = ({ animatedIndex, style }: BottomSheetBackdropProps) => {
     );
 
     return (
-        <TouchableWithoutFeedback>
-            <Animated.View style={containerStyle}>
-                <BlurView
-                    intensity={20}
-                    tint="dark"
-                    style={StyleSheet.absoluteFill}
-                />
-            </Animated.View>
-        </TouchableWithoutFeedback>
+        <Animated.View style={containerStyle} />
     );
 };
 
 const DateBottomSheet = forwardRef<DateBottomSheetRef, DateBottomSheetProps>((_, ref) => {
-    const bottomSheetRef = React.useRef<BottomSheet>(null);
+    const bottomSheetRef = React.useRef<BottomSheetModal>(null);
     const snapPoints = useMemo(() => ['85%'], []);
     const { setIsBottomSheetOpen } = useBottomSheet();
     const { setDateFilter, setTotalResults } = useFilter();
+    
     const [selectedDates, setSelectedDates] = useState<{ [key: string]: any }>({
         '2025-02-01': { selected: true, selectedColor: '#34b2da', dots: [{ color: '#34b2da' }] },
         '2025-02-03': { selected: true, selectedColor: '#34b2da', dots: [{ color: '#34b2da' }] },
@@ -81,7 +69,7 @@ const DateBottomSheet = forwardRef<DateBottomSheetRef, DateBottomSheetProps>((_,
 
     const handleClose = useCallback(() => {
         setIsBottomSheetOpen(false);
-        bottomSheetRef.current?.close();
+        bottomSheetRef.current?.dismiss();
     }, [setIsBottomSheetOpen]);
 
     const handleDayPress = (day: DateData) => {
@@ -149,15 +137,15 @@ const DateBottomSheet = forwardRef<DateBottomSheetRef, DateBottomSheetProps>((_,
     useImperativeHandle(ref, () => ({
         open: () => {
             setIsBottomSheetOpen(true);
-            bottomSheetRef.current?.snapToIndex(0);
+            bottomSheetRef.current?.present();
         },
         close: handleClose,
     }));
 
     return (
-        <BottomSheet
+        <BottomSheetModal
             ref={bottomSheetRef}
-            index={-1}
+            index={0}
             snapPoints={snapPoints}
             onChange={handleSheetChanges}
             enablePanDownToClose
@@ -219,7 +207,7 @@ const DateBottomSheet = forwardRef<DateBottomSheetRef, DateBottomSheetProps>((_,
                     </View>
                 )}
             </BottomSheetScrollView>
-        </BottomSheet>
+        </BottomSheetModal>
     );
 });
 

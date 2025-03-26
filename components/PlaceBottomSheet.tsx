@@ -1,12 +1,11 @@
-import React, { useCallback, useMemo, forwardRef, useImperativeHandle, useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Platform, TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, Pressable } from 'react-native';
-import BottomSheet, { BottomSheetView, BottomSheetBackdropProps, BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { useBottomSheet } from '@/context/BottomSheetContext';
-import { BlurView } from 'expo-blur';
-import Animated, { interpolate, useAnimatedStyle, Extrapolate } from 'react-native-reanimated';
-import { useFilter } from '@/context/FilterContext';
 import { ClockIcon } from '@/assets/icons/HomeIcons';
+import { useBottomSheet } from '@/context/BottomSheetContext';
+import { useFilter } from '@/context/FilterContext';
+import { Ionicons } from '@expo/vector-icons';
+import { BottomSheetBackdropProps, BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import React, { forwardRef, useCallback, useImperativeHandle, useMemo, useState } from 'react';
+import { Keyboard, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, TouchableWithoutFeedback, View } from 'react-native';
+import Animated, { Extrapolate, interpolate, useAnimatedStyle } from 'react-native-reanimated';
 
 interface Place {
     id: number;
@@ -41,11 +40,9 @@ export type PlaceBottomSheetRef = {
     close: () => void;
 };
 
-const CustomBackdrop = ({ animatedIndex, style }: BottomSheetBackdropProps) => {
-    if (Platform.OS === 'android') {
-        return null;
-    }
+interface PlaceBottomSheetProps {}
 
+const CustomBackdrop = ({ animatedIndex, style }: BottomSheetBackdropProps) => {
     const containerAnimatedStyle = useAnimatedStyle(() => ({
         opacity: interpolate(
             animatedIndex.value,
@@ -67,21 +64,13 @@ const CustomBackdrop = ({ animatedIndex, style }: BottomSheetBackdropProps) => {
     );
 
     return (
-        <TouchableWithoutFeedback>
-            <Animated.View style={containerStyle}>
-                <BlurView
-                    intensity={20}
-                    tint="dark"
-                    style={StyleSheet.absoluteFill}
-                />
-            </Animated.View>
-        </TouchableWithoutFeedback>
+        <Animated.View style={containerStyle} />
     );
 };
 
-const PlaceBottomSheet = forwardRef<PlaceBottomSheetRef>((_, ref) => {
+const PlaceBottomSheet = forwardRef<PlaceBottomSheetRef, PlaceBottomSheetProps>((_, ref) => {
     const [searchQuery, setSearchQuery] = useState('');
-    const bottomSheetRef = React.useRef<BottomSheet>(null);
+    const bottomSheetRef = React.useRef<BottomSheetModal>(null);
     const snapPoints = useMemo(() => ['50%', '90%'], []);
     const { setIsBottomSheetOpen } = useBottomSheet();
     const { setPlaceFilter, setTotalResults } = useFilter();
@@ -97,7 +86,7 @@ const PlaceBottomSheet = forwardRef<PlaceBottomSheetRef>((_, ref) => {
         setSearchQuery('');
         setIsBottomSheetOpen(false);
         Keyboard.dismiss();
-        bottomSheetRef.current?.close();
+        bottomSheetRef.current?.dismiss();
     }, [setIsBottomSheetOpen]);
 
     const handleOutsidePress = useCallback(() => {
@@ -111,7 +100,7 @@ const PlaceBottomSheet = forwardRef<PlaceBottomSheetRef>((_, ref) => {
 
     const handlePlaceSelect = (place: Place) => {
         setPlaceFilter(place.name);
-        setTotalResults(256); // This would normally be calculated based on actual filtered results
+        setTotalResults(256);
         handleClose();
     };
 
@@ -131,15 +120,15 @@ const PlaceBottomSheet = forwardRef<PlaceBottomSheetRef>((_, ref) => {
     useImperativeHandle(ref, () => ({
         open: () => {
             setIsBottomSheetOpen(true);
-            bottomSheetRef.current?.snapToIndex(0);
+            bottomSheetRef.current?.present();
         },
         close: handleClose,
     }));
 
     return (
-        <BottomSheet
+        <BottomSheetModal
             ref={bottomSheetRef}
-            index={-1}
+            index={0}
             snapPoints={snapPoints}
             onChange={handleSheetChanges}
             enablePanDownToClose
@@ -147,7 +136,7 @@ const PlaceBottomSheet = forwardRef<PlaceBottomSheetRef>((_, ref) => {
             backgroundStyle={styles.bottomSheetBackground}
             handleIndicatorStyle={styles.handleIndicator}
             style={styles.bottomSheet}
-            keyboardBehavior="fillParent"
+            keyboardBehavior={Platform.OS === "ios" ? "interactive" : "extend"}
             android_keyboardInputMode="adjustResize"
         >
             <TouchableWithoutFeedback onPress={handleOutsidePress}>
@@ -204,7 +193,7 @@ const PlaceBottomSheet = forwardRef<PlaceBottomSheetRef>((_, ref) => {
                     </BottomSheetScrollView>
                 </KeyboardAvoidingView>
             </TouchableWithoutFeedback>
-        </BottomSheet>
+        </BottomSheetModal>
     );
 });
 

@@ -1,33 +1,52 @@
-import { Image, Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import {
-  FontAwesome5,
-  Ionicons,
-  Entypo,
-  MaterialIcons,
-  FontAwesome,
-} from "@expo/vector-icons";
-import { useState, useRef } from "react";
-import { BookMarkIcon, CrossIcon, Icon1, PlaceIcon, PriceIcon } from "@/assets/icons/HomeIcons";
-import { useRouter } from 'expo-router';
-import PlaceBottomSheet, { PlaceBottomSheetRef } from '@/components/PlaceBottomSheet';
-import { CalendarIcon, RegularIcon, VipIcon, EarlyBirdIcon, OfferIcon, MoonIcon } from "@/assets/icons/TicketIcons";
+  BookMarkIcon,
+  CrossIcon,
+  Icon1,
+  PlaceIcon,
+  PriceIcon
+} from "@/assets/icons/HomeIcons";
 import { BrushIcon, MusicIcon } from "@/assets/icons/SavedEventsIcons";
+import {
+  CalendarIcon,
+  MoonIcon,
+  OfferIcon,
+  RegularIcon
+} from "@/assets/icons/TicketIcons";
+import image1 from "@/assets/images/ticket/ticket1.png";
+import DateBottomSheet, {
+  DateBottomSheetRef
+} from "@/components/DateBottomSheet";
+import PlaceBottomSheet, {
+  PlaceBottomSheetRef
+} from "@/components/PlaceBottomSheet";
+import PriceBottomSheet, {
+  PriceBottomSheetRef
+} from "@/components/PriceBottomSheet";
+import { useFilter } from "@/context/FilterContext";
+import { FontAwesome5, Ionicons } from "@expo/vector-icons";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { LinearGradient } from "expo-linear-gradient";
-import DateBottomSheet, { DateBottomSheetRef } from '@/components/DateBottomSheet';
-import PriceBottomSheet, { PriceBottomSheetRef } from '@/components/PriceBottomSheet';
-import React from "react";
-import { useFilter } from '@/context/FilterContext';
-import image1 from "@/assets/images/ticket/ticket1.png"
+import { useRouter } from "expo-router";
+import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const getTicketIcon = (category: string) => {
   switch (category.toLowerCase()) {
-    case 'arts & culture':
+    case "arts & culture":
       return <BrushIcon color="#9bda33" size={13} />;
-    case 'music':
+    case "music":
       return <MusicIcon color="#cd364f" size={16} />;
-    case 'sport':
+    case "sport":
       return <RegularIcon color="#34B2DA" size={16} />;
-    case 'tech':
+    case "tech":
       return <OfferIcon color="#A855F7" size={16} />;
     case "nightlife":
       return <MoonIcon color="#A855F7" size={16} />;
@@ -44,7 +63,7 @@ const events = [
     image: image1,
     title: "Abstract Horizons",
     location: "Modern Arts Center",
-    price: "$39+",
+    price: "$39+"
   },
   {
     id: 2,
@@ -53,7 +72,7 @@ const events = [
     image: require("@/assets/images/ticket/ticket4.png"),
     title: "Rock Night",
     location: "Open Arena",
-    price: "$50+",
+    price: "$50+"
   },
   {
     id: 3,
@@ -62,7 +81,7 @@ const events = [
     image: require("@/assets/images/ticket/ticket2.png"),
     title: "Championship Finals",
     location: "City Stadium",
-    price: "$20+",
+    price: "$20+"
   },
   {
     id: 4,
@@ -71,9 +90,197 @@ const events = [
     image: require("@/assets/images/ticket/ticket3.png"),
     title: "Tech Conference 2025",
     location: "Tech Park",
-    price: "Free",
-  },
+    price: "Free"
+  }
 ];
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#000000"
+  },
+  scrollView: {
+    flex: 1,
+    backgroundColor: "#000",
+    paddingHorizontal: 16,
+    paddingTop: 32,
+    paddingBottom: 128
+  },
+  title: {
+    color: "white",
+    fontWeight: "500",
+    fontSize: 36
+  },
+  categoriesContainer: {
+    position: "relative",
+    width: "100%",
+    marginTop: 24
+  },
+  horizontalScroll: {
+    width: "100%"
+  },
+  categoryButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 100,
+    marginRight: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row"
+  },
+  categoriesGradient: {
+    position: "absolute",
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: 80,
+    height: "100%",
+    zIndex: 1
+  },
+  filterContainer: {
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: 24,
+    marginTop: 24,
+    padding: 8
+  },
+  filterRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 8
+  },
+  filterButton: {
+    flex: 1,
+    backgroundColor: "#141414",
+    height: 80,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  filterButtonText: {
+    color: "white",
+    fontWeight: "500",
+    fontSize: 18,
+    marginTop: 4
+  },
+  clearFiltersButton: {
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: 100,
+    marginTop: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8
+  },
+  clearFiltersText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "500",
+    textAlign: "center"
+  },
+  cardsContainer: {
+    marginTop: 32
+  },
+  eventCard: {
+    backgroundColor: "#111111",
+    borderRadius: 16,
+    overflow: "hidden",
+    padding: 16,
+    marginBottom: 24
+  },
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between"
+  },
+  cardCategory: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flex: 1,
+    marginRight: 16
+  },
+  cardCategoryText: {
+    color: "rgba(255, 255, 255, 0.5)",
+    fontWeight: "500",
+    textTransform: "uppercase"
+  },
+  cardDate: {
+    color: "white",
+    fontWeight: "500"
+  },
+  cardDivider: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+    marginTop: 16
+  },
+  dividerDot: {
+    width: 8,
+    height: 4,
+    backgroundColor: "black",
+    borderRadius: 100,
+    marginHorizontal: 2
+  },
+  cardContent: {
+    marginTop: 16,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center"
+  },
+  cardImage: {
+    height: 80,
+    width: 80,
+    borderRadius: 12,
+    overflow: "hidden"
+  },
+  bookmarkButton: {
+    width: 56,
+    height: 56,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: 100,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  cardFooter: {
+    marginTop: 16,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center"
+  },
+  eventTitle: {
+    color: "white",
+    fontWeight: "500",
+    fontSize: 20
+  },
+  eventLocation: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 8
+  },
+  locationText: {
+    color: "rgba(255, 255, 255, 0.4)",
+    fontWeight: "500",
+    marginLeft: 4
+  },
+  eventPrice: {
+    flexDirection: "row",
+    alignItems: "flex-end"
+  },
+  priceCurrency: {
+    color: "rgba(255, 255, 255, 0.5)",
+    fontWeight: "500",
+    fontSize: 30
+  },
+  priceValue: {
+    color: "white",
+    fontWeight: "500",
+    fontSize: 30
+  }
+});
 
 export default function Index() {
   const router = useRouter();
@@ -81,254 +288,465 @@ export default function Index() {
   const placeBottomSheetRef = useRef<PlaceBottomSheetRef>(null);
   const dateBottomSheetRef = useRef<DateBottomSheetRef>(null);
   const priceBottomSheetRef = useRef<PriceBottomSheetRef>(null);
-  const { placeFilter, priceFilter, dateFilter, totalResults, clearAllFilters } = useFilter();
+  
+  // Track which bottom sheet is ready to render
+  const [readyBottomSheets, setReadyBottomSheets] = useState({
+    place: false,
+    date: false,
+    price: false
+  });
+  
+  // Initialize bottom sheets with useLayoutEffect for proper timing
+  useLayoutEffect(() => {
+    // Use a small delay to ensure the component is fully mounted
+    const timer = setTimeout(() => {
+      setReadyBottomSheets({
+        place: true,
+        date: true,
+        price: true
+      });
+    }, 200);
+    
+    return () => {
+      clearTimeout(timer);
+      // Close any open bottom sheets on unmount
+      if (placeBottomSheetRef.current) {
+        placeBottomSheetRef.current.close?.();
+      }
+      if (dateBottomSheetRef.current) {
+        dateBottomSheetRef.current.close?.();
+      }
+      if (priceBottomSheetRef.current) {
+        priceBottomSheetRef.current.close?.();
+      }
+    };
+  }, []);
+  
+  // Safe open methods with proper timing
+  const openPlaceBottomSheet = useCallback(() => {
+    if (placeBottomSheetRef.current?.open) {
+      placeBottomSheetRef.current.open();
+    }
+  }, []);
+  
+  const openDateBottomSheet = useCallback(() => {
+    if (dateBottomSheetRef.current?.open) {
+      dateBottomSheetRef.current.open();
+    }
+  }, []);
+  
+  const openPriceBottomSheet = useCallback(() => {
+    if (priceBottomSheetRef.current?.open) {
+      priceBottomSheetRef.current.open();
+    }
+  }, []);
+  
+  const {
+    placeFilter,
+    priceFilter,
+    dateFilter,
+    totalResults,
+    clearAllFilters
+  } = useFilter();
 
   const hasActiveFilters = placeFilter || priceFilter || dateFilter;
 
   const categories = [
-    { id: 'all', label: 'All', icon: null, color: null },
-    { id: 'music', label: 'Music', icon: 'music', color: 'red', IconComponent: FontAwesome5 },
-    { id: 'nightlife', label: 'Nightlife', icon: 'moon', color: 'purple', IconComponent: Ionicons },
-    { id: 'sport', label: 'Sport', icon: 'fire', color: 'orange', IconComponent: FontAwesome5 },
-    { id: 'theater', label: 'Theater', icon: 'theater-masks', color: 'pink', IconComponent: FontAwesome5 },
-    { id: 'art', label: 'Art', icon: 'paint-brush', color: 'cyan', IconComponent: FontAwesome5 },
-    { id: 'food', label: 'Food', icon: 'utensils', color: 'yellow', IconComponent: FontAwesome5 },
-    { id: 'education', label: 'Education', icon: 'graduation-cap', color: 'green', IconComponent: FontAwesome5 },
+    { id: "all", label: "All", icon: null, color: null },
+    {
+      id: "music",
+      label: "Music",
+      icon: "music",
+      color: "red",
+      IconComponent: FontAwesome5
+    },
+    {
+      id: "nightlife",
+      label: "Nightlife",
+      icon: "moon",
+      color: "purple",
+      IconComponent: Ionicons
+    },
+    {
+      id: "sport",
+      label: "Sport",
+      icon: "fire",
+      color: "orange",
+      IconComponent: FontAwesome5
+    },
+    {
+      id: "theater",
+      label: "Theater",
+      icon: "theater-masks",
+      color: "pink",
+      IconComponent: FontAwesome5
+    },
+    {
+      id: "art",
+      label: "Art",
+      icon: "paint-brush",
+      color: "cyan",
+      IconComponent: FontAwesome5
+    },
+    {
+      id: "food",
+      label: "Food",
+      icon: "utensils",
+      color: "yellow",
+      IconComponent: FontAwesome5
+    },
+    {
+      id: "education",
+      label: "Education",
+      icon: "graduation-cap",
+      color: "green",
+      IconComponent: FontAwesome5
+    }
   ];
 
-  const toggleBookmark = (eventId: number) => {
+  const toggleBookmark = useCallback((eventId: number) => {
     setBookmarkedEvents(
       (prev) =>
         prev.includes(eventId)
           ? prev.filter((id) => id !== eventId) // Remove bookmark
           : [...prev, eventId] // Add bookmark
     );
+  }, []);
+
+  type EventType = {
+    id: number;
+    title: string;
+    category: string;
+    location: string;
+    date: string;
+    price: string;
+    image: any;
   };
 
-  return (
-    <View style={{ flex: 1, backgroundColor: '#000' }}>
-      <ScrollView className="px-4 py-8">
-        {hasActiveFilters ? (
-          <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-white font-medium text-4xl">{totalResults} results{'\n'}based on filters</Text>
-
-          </View>
-        ) : (
-          <Text className="text-white font-medium text-4xl">Explore Events</Text>
-        )}
-
-        {/* Section 1 */}
-        <View className="relative w-full">
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            className="w-full mt-6"
-            contentContainerStyle={{ gap: 10, paddingRight: 100 }}
-          >
-            {categories.map((category) => (
-              <Pressable
-                key={category.id}
-                className={`${category.id === 'all' ? 'bg-white' : 'bg-black border border-white/10'
-                  } rounded-full px-6 py-3 flex items-center justify-center`}
-              >
-                {category.icon ? (
-                  <View className="flex-row items-center">
-                    <category.IconComponent name={category.icon} size={16} color={category.color} />
-                    <Text className={`${category.id === 'all' ? 'text-black' : 'text-white'
-                      } font-medium ml-3`}>{category.label}</Text>
-                  </View>
-                ) : (
-                  <Text className="text-black font-medium">{category.label}</Text>
-                )}
-              </Pressable>
-            ))}
-          </ScrollView>
-          <LinearGradient
-            colors={["transparent", "#00000082"]}
-            start={{ x: 0.7, y: 0 }}
-            end={{ x: 0.9, y: 0 }}
-            style={{
-              position: 'absolute',
-              right: 0,
-              top: 0,
-              bottom: 0,
-              width: 200,
-              height: '100%',
-              zIndex: 1,
-              pointerEvents: 'none',
-            }}
-          />
-        </View>
-
-        {/* Section 2 */}
-        <View className="border  border-white/10 rounded-3xl mt-6 p-2">
-          <View className="flex-row justify-between gap-2">
-            <Pressable
-              className="flex-1 bg-[#141414] h-20 rounded-2xl items-center justify-center relative"
-              onPress={() => placeBottomSheetRef.current?.open()}
-            >
-              <View className="flex-col items-center">
-                <PlaceIcon color="white" size={20} />
-                <View className="flex-row items-center gap-1 mt-1">
-                  <Text className="text-white font-medium text-lg">Place</Text>
-                  {placeFilter && (
-                    <View className=" bg-[#172428] w-5 h-5 rounded-md items-center justify-center">
-                      <Text className="text-[#34b2da] text-xs font-bold">2</Text>
-                    </View>
-                  )}
-                </View>
-              </View>
-            </Pressable>
-            <Pressable
-              className="flex-1 bg-[#141414] h-20 rounded-2xl items-center justify-center relative"
-              onPress={() => priceBottomSheetRef.current?.open()}
-            >
-              <View className="flex-col items-center">
-                <PriceIcon color="white" size={20} />
-                {
-                  <View className="flex-row items-center gap-1 mt-1">
-                    <Text className="text-white font-medium text-lg">Price</Text>
-                    {priceFilter && (
-                      <View className=" bg-[#172428] w-5 h-5 rounded-md items-center justify-center">
-                        <Text className="text-[#34b2da] text-xs font-bold">2</Text>
-                      </View>
-                    )}
-                  </View>
-                }
-              </View>
-            </Pressable>
-            <Pressable
-              className="flex-1 bg-[#141414] h-20 rounded-2xl items-center justify-center relative"
-              onPress={() => dateBottomSheetRef.current?.open()}
-            >
-              <View className="flex-col items-center">
-                <CalendarIcon color="gray" size={18} />
-                <View className="flex-row items-center gap-1 mt-1">
-                  <Text className="text-white font-medium text-lg">Date</Text>
-                  {dateFilter && dateFilter.length > 0 && (
-                    <View className=" bg-[#172428] w-5 h-5 rounded-md items-center justify-center">
-                      <Text className="text-[#34b2da] text-xs font-bold">{dateFilter.length}</Text>
-                    </View>
-                  )}
-                </View>
-              </View>
-            </Pressable>
-          </View>
-        </View>
-
-
-        {/* clear all filters */}
-        {
-          hasActiveFilters && (<Pressable
-            className="p-4 border border-white/10 rounded-full mt-4 flex-row items-center gap-2 justify-center"
-            onPress={clearAllFilters}
-          >
-            <CrossIcon color="white" size={16} />
-            <Text className="text-white text-lg font-medium text-center">Clear all filters</Text>
-          </Pressable>)
+  const handleEventPress = useCallback(
+    (event: EventType) => {
+      router.push({
+        pathname: "/(stack)/event-details",
+        params: {
+          id: event.id,
+          title: event.title,
+          category: event.category,
+          location: event.location,
+          date: event.date,
+          price: event.price,
+          image: event.image
         }
+      });
+    },
+    [router]
+  );
 
-        {/* Card Section */}
-        <View className="mt-8">
-          {events.map((event) => (
-            <Pressable
-              key={event.id}
-              className="bg-card rounded-2xl overflow-hidden p-4 mb-6"
-              onPress={() => {
-                router.push({
-                  pathname: "/(stack)/event-details",
-                  params: {
-                    id: event.id,
-                    title: event.title,
-                    category: event.category,
-                    location: event.location,
-                    date: event.date,
-                    price: event.price,
-                    image: event.image
-                  }
-                });
-              }}
-            >
-              <View className="flex-row justify-between">
-                <View className="flex-row items-center gap-2 flex-1 mr-4">
-                  {getTicketIcon(event.category)}
-                  <Text className="text-white/50 font-medium uppercase flex-shrink-0" numberOfLines={1}>
-                    {event.category}
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <BottomSheetModalProvider>
+        <ScrollView className="bg-black h-full px-4 py-8 pb-32">
+          <View style={styles.container}>
+            <ScrollView style={styles.scrollView}>
+              {hasActiveFilters ? (
+                <View style={{ marginBottom: 16 }}>
+                  <Text style={styles.title}>
+                    {totalResults} results{"\n"}based on filters
                   </Text>
                 </View>
-                <Text className="text-white font-medium flex-shrink-0">{event.date}</Text>
-              </View>
+              ) : (
+                <Text style={styles.title}>Explore Events</Text>
+              )} 
 
-              <View className="flex-row justify-between items-center w-full mt-4">
-                {Array(20)
-                  .fill(0)
-                  .map((_, index) => (
-                    <View
-                      key={index}
-                      className="w-2 h-1 bg-black rounded-full mx-[2px]"
-                    />
-                  ))}
-              </View>
-
-              <View className="mt-4 flex-row justify-between items-center">
-                <TouchableOpacity className="h-20 w-20 rounded-xl overflow-hidden">
-                  <Image
-                    source={event.image}
-                    className="h-full w-full"
-                    resizeMode="cover"
-                  />
-                </TouchableOpacity>
-                <Pressable
-                  className="w-14 flex items-center justify-center h-14 border border-white/10 rounded-full p-2"
-                  onPress={() => toggleBookmark(event.id)}
+              {/* Categories */}
+             <View style={styles.categoriesContainer}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.horizontalScroll}
+                  contentContainerStyle={{ paddingRight: 100 }}
                 >
-                  {bookmarkedEvents.includes(event.id) ? (
-                    <Icon1 color="#6EE7B7" size={15} />
-                  ) : (
-                    <BookMarkIcon color="white" size={20} />
-                  )}
-                </Pressable>
+                  {categories.map((category) => (
+                    <TouchableOpacity
+                      key={category.id}
+                      style={[
+                        styles.categoryButton,
+                        {
+                          backgroundColor:
+                            category.id === "all" ? "white" : "black",
+                          borderWidth: category.id === "all" ? 0 : 1,
+                          borderColor: "rgba(255, 255, 255, 0.1)"
+                        }
+                      ]}
+                      activeOpacity={0.6}
+                    >
+                      {category.icon ? (
+                        <View
+                          style={{ flexDirection: "row", alignItems: "center" }}
+                        >
+                          <category.IconComponent
+                            name={category.icon}
+                            size={16}
+                            color={category.color}
+                          />
+                          <Text
+                            style={{
+                              color: category.id === "all" ? "black" : "white",
+                              fontWeight: "500",
+                              marginLeft: 12
+                            }}
+                          >
+                            {category.label}
+                          </Text>
+                        </View>
+                      ) : (
+                        <Text style={{ color: "black", fontWeight: "500" }}>
+                          {category.label}
+                        </Text>
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+                <View style={styles.categoriesGradient} pointerEvents="none">
+                  <LinearGradient
+                    colors={["transparent", "#000000"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={{ width: "100%", height: "100%" }}
+                  />
+                </View>
+              </View> 
+
+              {/* Filters */}
+              <View style={styles.filterContainer}>
+                <View style={styles.filterRow}>
+                  <TouchableOpacity
+                    style={styles.filterButton}
+                    onPress={openPlaceBottomSheet}
+                    activeOpacity={0.6}
+                  >
+                    <PlaceIcon color="white" size={20} />
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 4,
+                        marginTop: 4
+                      }}
+                    >
+                      <Text style={styles.filterButtonText}>Place</Text>
+                      {placeFilter && (
+                        <View
+                          style={{
+                            backgroundColor: "#172428",
+                            width: 20,
+                            height: 20,
+                            borderRadius: 6,
+                            alignItems: "center",
+                            justifyContent: "center"
+                          }}
+                        >
+                          <Text
+                            style={{
+                              color: "#34b2da",
+                              fontSize: 12,
+                              fontWeight: "bold"
+                            }}
+                          >
+                            2
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.filterButton}
+                    onPress={openPriceBottomSheet}
+                    activeOpacity={0.6}
+                  >
+                    <PriceIcon color="white" size={20} />
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 4,
+                        marginTop: 4
+                      }}
+                    >
+                      <Text style={styles.filterButtonText}>Price</Text>
+                      {priceFilter && (
+                        <View
+                          style={{
+                            backgroundColor: "#172428",
+                            width: 20,
+                            height: 20,
+                            borderRadius: 6,
+                            alignItems: "center",
+                            justifyContent: "center"
+                          }}
+                        >
+                          <Text
+                            style={{
+                              color: "#34b2da",
+                              fontSize: 12,
+                              fontWeight: "bold"
+                            }}
+                          >
+                            2
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.filterButton}
+                    onPress={openDateBottomSheet}
+                    activeOpacity={0.6}
+                  >
+                    <CalendarIcon color="gray" size={18} />
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 4,
+                        marginTop: 4
+                      }}
+                    >
+                      <Text style={styles.filterButtonText}>Date</Text>
+                      {dateFilter && dateFilter.length > 0 && (
+                        <View
+                          style={{
+                            backgroundColor: "#172428",
+                            width: 20,
+                            height: 20,
+                            borderRadius: 6,
+                            alignItems: "center",
+                            justifyContent: "center"
+                          }}
+                        >
+                          <Text
+                            style={{
+                              color: "#34b2da",
+                              fontSize: 12,
+                              fontWeight: "bold"
+                            }}
+                          >
+                            {dateFilter.length}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                </View>
               </View>
 
-              <View className="mt-4 flex-row justify-between items-center">
-                <View>
-                  <Text className="text-white font-medium text-xl">
-                    {event.title}
-                  </Text>
-                  <View className="flex-row items-center mt-2">
-                    <PlaceIcon color="white" size={16} />
-                    <Text className="text-gray-400 font-medium text-md ml-1">
-                      {event.location}
-                    </Text>
-                  </View>
-                </View>
-                <View className="flex-row items-end">
-                  {
-                    event.price.includes('$') ? (
-                      <>
-                        <Text className="text-white/50 font-medium text-3xl">
-                          $
+              {/* Clear Filters */}
+              {hasActiveFilters && (
+                <TouchableOpacity
+                  style={styles.clearFiltersButton}
+                  onPress={clearAllFilters}
+                  activeOpacity={0.6}
+                >
+                  <CrossIcon color="white" size={16} />
+                  <Text style={styles.clearFiltersText}>Clear all filters</Text>
+                </TouchableOpacity>
+              )}
+
+              {/* Cards */}
+              <View style={styles.cardsContainer}>
+                {events.map((event) => (
+                  <TouchableOpacity
+                    key={event.id}
+                    style={styles.eventCard}
+                    onPress={() => handleEventPress(event)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.cardHeader}>
+                      <View style={styles.cardCategory}>
+                        {getTicketIcon(event.category)}
+                        <Text style={styles.cardCategoryText} numberOfLines={1}>
+                          {event.category}
                         </Text>
-                        <Text className="text-white font-medium text-3xl">
-                          {event.price.replace('$', '')}
-                        </Text>
-                      </>
-                    ) : (
-                      <Text className="text-white font-medium text-3xl">
-                        {event.price}
-                      </Text>
-                    )
-                  }
-                </View>
+                      </View>
+                      <Text style={styles.cardDate}>{event.date}</Text>
+                    </View>
+
+                    <View style={styles.cardDivider}>
+                      {Array(20)
+                        .fill(0)
+                        .map((_, index) => (
+                          <View key={index} style={styles.dividerDot} />
+                        ))}
+                    </View>
+
+                    <View style={styles.cardContent}>
+                      <View style={styles.cardImage}>
+                        <Image
+                          source={event.image}
+                          style={{ height: "100%", width: "100%" }}
+                          resizeMode="cover"
+                        />
+                      </View>
+                      <TouchableOpacity
+                        style={styles.bookmarkButton}
+                        onPress={() => toggleBookmark(event.id)}
+                        activeOpacity={0.6}
+                      >
+                        {bookmarkedEvents.includes(event.id) ? (
+                          <Icon1 color="#6EE7B7" size={15} />
+                        ) : (
+                          <BookMarkIcon color="white" size={20} />
+                        )}
+                      </TouchableOpacity>
+                    </View>
+
+                    <View style={styles.cardFooter}>
+                      <View>
+                        <Text style={styles.eventTitle}>{event.title}</Text>
+                        <View style={styles.eventLocation}>
+                          <PlaceIcon color="white" size={16} />
+                          <Text style={styles.locationText}>{event.location}</Text>
+                        </View>
+                      </View>
+                      <View style={styles.eventPrice}>
+                        {event.price.includes("$") ? (
+                          <>
+                            <Text style={styles.priceCurrency}>$</Text>
+                            <Text style={styles.priceValue}>
+                              {event.price.replace("$", "")}
+                            </Text>
+                          </>
+                        ) : (
+                          <Text style={styles.priceValue}>{event.price}</Text>
+                        )}
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                ))}
               </View>
-            </Pressable>
-          ))}
-        </View>
-        <View className="h-32"></View>
-      </ScrollView >
-      <PlaceBottomSheet ref={placeBottomSheetRef} />
-      <DateBottomSheet ref={dateBottomSheetRef} />
-      <PriceBottomSheet ref={priceBottomSheetRef} />
-    </View >
+              <View style={{ height: 128 }} />
+            </ScrollView>
+
+            {/* Conditionally render bottom sheets when ready */}
+            {readyBottomSheets.place && (
+              <PlaceBottomSheet 
+                ref={placeBottomSheetRef}
+              />
+            )}
+            {readyBottomSheets.date && (
+              <DateBottomSheet 
+                ref={dateBottomSheetRef}
+              />
+            )}
+            {readyBottomSheets.price && (
+              <PriceBottomSheet 
+                ref={priceBottomSheetRef}
+              />
+            )}
+          </View>
+        </ScrollView>
+      </BottomSheetModalProvider>
+    </GestureHandlerRootView>
   );
 }

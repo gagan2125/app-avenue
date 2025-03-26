@@ -1,35 +1,30 @@
-import React, { useCallback, useMemo, forwardRef, useImperativeHandle, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Switch, TouchableWithoutFeedback, Platform, Keyboard } from 'react-native';
-import BottomSheet, { BottomSheetBackdropProps, BottomSheetScrollView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useBottomSheet } from '@/context/BottomSheetContext';
-import { BlurView } from 'expo-blur';
-import Animated, { interpolate, useAnimatedStyle, Extrapolate } from 'react-native-reanimated';
-import RangeSlider from 'rn-range-slider';
 import { useFilter } from '@/context/FilterContext';
+import { BottomSheetBackdropProps, BottomSheetModal, BottomSheetScrollView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
+import React, { forwardRef, useCallback, useImperativeHandle, useMemo, useState } from 'react';
+import { StyleSheet, Switch, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import Animated, { Extrapolate, interpolate, useAnimatedStyle } from 'react-native-reanimated';
+import RangeSlider from 'rn-range-slider';
 
 export type PriceBottomSheetRef = {
     open: () => void;
     close: () => void;
 };
 
-const CustomBackdrop = ({ animatedIndex, style }: BottomSheetBackdropProps) => {
-    if (Platform.OS === 'android') return null;
+interface PriceBottomSheetProps {}
 
+const CustomBackdrop = ({ animatedIndex, style }: BottomSheetBackdropProps) => {
     const containerAnimatedStyle = useAnimatedStyle(() => ({
         opacity: interpolate(animatedIndex.value, [-1, 0], [0, 1], Extrapolate.CLAMP),
     }));
 
     return (
-        <TouchableWithoutFeedback>
-            <Animated.View style={[style, { backgroundColor: "#00000099" }, containerAnimatedStyle]}>
-                <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
-            </Animated.View>
-        </TouchableWithoutFeedback>
+        <Animated.View style={[style, { backgroundColor: "#00000099" }, containerAnimatedStyle]} />
     );
 };
 
-const PriceBottomSheet = forwardRef<PriceBottomSheetRef>((_, ref) => {
-    const bottomSheetRef = React.useRef<BottomSheet>(null);
+const PriceBottomSheet = forwardRef<PriceBottomSheetRef, PriceBottomSheetProps>((_, ref) => {
+    const bottomSheetRef = React.useRef<BottomSheetModal>(null);
     const snapPoints = useMemo(() => ['50%'], []);
     const { setIsBottomSheetOpen } = useBottomSheet();
     const { setPriceFilter, setTotalResults } = useFilter();
@@ -43,7 +38,7 @@ const PriceBottomSheet = forwardRef<PriceBottomSheetRef>((_, ref) => {
 
     const handleClose = useCallback(() => {
         setIsBottomSheetOpen(false);
-        bottomSheetRef.current?.close();
+        bottomSheetRef.current?.dismiss();
     }, [setIsBottomSheetOpen]);
 
     const handleApply = () => {
@@ -61,7 +56,7 @@ const PriceBottomSheet = forwardRef<PriceBottomSheetRef>((_, ref) => {
     useImperativeHandle(ref, () => ({
         open: () => {
             setIsBottomSheetOpen(true);
-            bottomSheetRef.current?.snapToIndex(0);
+            bottomSheetRef.current?.present();
         },
         close: handleClose,
     }));
@@ -87,15 +82,24 @@ const PriceBottomSheet = forwardRef<PriceBottomSheetRef>((_, ref) => {
             setToPrice('0');
         }
     };
+    
+    const renderBackdrop = useCallback(
+        (props: BottomSheetBackdropProps) => (
+            <TouchableWithoutFeedback onPress={handleClose}>
+                <CustomBackdrop {...props} />
+            </TouchableWithoutFeedback>
+        ),
+        [handleClose]
+    );
 
     return (
-        <BottomSheet
+        <BottomSheetModal
             ref={bottomSheetRef}
-            index={-1}
+            index={0}
             snapPoints={snapPoints}
             onChange={handleSheetChanges}
             enablePanDownToClose
-            backdropComponent={(props) => <CustomBackdrop {...props} />}
+            backdropComponent={renderBackdrop}
             backgroundStyle={styles.bottomSheetBackground}
             handleIndicatorStyle={styles.handleIndicator}
         >
@@ -161,7 +165,7 @@ const PriceBottomSheet = forwardRef<PriceBottomSheetRef>((_, ref) => {
                     <Text style={styles.clearButtonText}>Clear all selected</Text>
                 </TouchableOpacity>
             </BottomSheetScrollView>
-        </BottomSheet>
+        </BottomSheetModal>
     );
 });
 
