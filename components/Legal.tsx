@@ -28,7 +28,7 @@ const LegalSection = () => {
 
       <View className="p-4 space-y-6">
         {/* Contact Support Section */}
-        <View className="space-y-2">
+        {/* <View className="space-y-2">
           <Text className="text-xl font-normal text-white">
             Contact support
           </Text>
@@ -43,10 +43,10 @@ const LegalSection = () => {
               </Text>
             </Pressable>
           </View>
-        </View>
+        </View> */}
 
         {/* Terms and Privacy Section */}
-        <View className="space-y-2">
+        {/* <View className="space-y-2">
           <Text className="text-xl font-normal text-white">
             Terms and Privacy
           </Text>
@@ -61,7 +61,7 @@ const LegalSection = () => {
               </View>
             </Pressable>
           </View>
-        </View>
+        </View> */}
 
         {/* Logout Section */}
         <View className="space-y-2">
@@ -69,12 +69,12 @@ const LegalSection = () => {
           <Text className="text-base text-[#8E9196] mt-2">
             You will be logged out of your account
           </Text>
-          <View className="flex-row items-center gap-2 my-4 w-1/2 ">
-            <Pressable className="w-full p-4 rounded-full mt-3 flex-row items-center gap-2 px-6 py-4 bg-black border border-white/10">
+          <View className="flex-row items-center gap-2 my-4 w-full ">
+            <Pressable className="w-full p-4 rounded-full mt-3 flex-row items-center text-center gap-2 px-6 py-4 bg-black border border-white/10">
               <LogoutIcon color="#F43F5E" size={14} />
               <Text
                 style={{ color: "#F43F5E" }}
-                className="text-md font-medium ml-2 "
+                className="text-md text-center font-medium ml-2 "
               >
                 Logout of Account
               </Text>

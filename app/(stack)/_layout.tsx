@@ -13,6 +13,7 @@ export default function StackLayout() {
                 name="verify-number"
                 options={{
                     headerShown: false,
+                    gestureEnabled: false,
                 }}
             />
             <Stack.Screen
@@ -47,6 +48,36 @@ export default function StackLayout() {
             />
             <Stack.Screen
                 name="creator-page"
+                options={{
+                    headerShown: false,
+                }}
+            />
+            <Stack.Screen
+                name="bottom-tab"
+                options={{
+                    headerShown: false,
+                }}
+            />
+            <Stack.Screen
+                name="qr-scan"
+                options={{
+                    headerShown: false,
+                }}
+            />
+            <Stack.Screen
+                name="attendes"
+                options={{
+                    headerShown: false,
+                }}
+            />
+            <Stack.Screen
+                name="scanner"
+                options={{
+                    headerShown: false,
+                }}
+            />
+            <Stack.Screen
+                name="org-profile"
                 options={{
                     headerShown: false,
                 }}

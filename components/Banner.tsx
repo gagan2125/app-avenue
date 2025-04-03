@@ -62,13 +62,9 @@ export default function Banner({ type, text, isExpired = false }: BannerProps) {
                 backgroundColor,
                 borderWidth: 1,
                 borderColor,
-                borderRadius: isExpired ? 10 : 0,
-                borderTopLeftRadius: !isExpired ? 0 : 10,
-                borderTopRightRadius: !isExpired ? 0 : 10,
-                position: "absolute",
-                bottom: 0,
+                borderRadius: 10,
             }}
-            className={`w-full h-14 justify-center overflow-hidden ${isExpired ? 'mx-4 my-2' : 'absolute bottom-0'}`}
+            className="w-full h-14 justify-center overflow-hidden mx-4 my-2"
         >
             {/* Background lines */}
             <View className="absolute inset-0 flex-row justify-center items-center gap-6">
@@ -81,7 +77,7 @@ export default function Banner({ type, text, isExpired = false }: BannerProps) {
                 ))}
             </View>
             {/* Centered Text */}
-            <View className={`flex-row items-center ${isExpired ? 'justify-center' : ''} px-6 z-10`}>
+            <View className="flex-row items-center justify-center px-6 z-10">
                 <Icon color={textColor} size={16} />
                 <Text style={{ color: textColor }} className="text-sm font-medium ml-2">{text}</Text>
             </View>
